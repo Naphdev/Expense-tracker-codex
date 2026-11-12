@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+.env
+.env.local
+*.log
+.DS_Store
+coverage
+.vite
+.vitest-tmp
+.vercel
+backend/dist
+backend/.mongo-test-data
+frontend/dist
+*.tsbuildinfo
