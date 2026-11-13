@@ -25,9 +25,13 @@ export default {
     }
 
     const incoming = new URL(request.url);
-    const apiPath = incoming.pathname.replace(/^\/api(?=\/|$)/, "");
-    const target = new URL(`/api${apiPath}`, origin);
-    target.search = incoming.search;
+    const apiPath = incoming.searchParams.get("path")?.replace(/^\/+|\/+$/g, "");
+    if (!apiPath) return jsonError(400, "API path is missing");
+
+    const target = new URL(`/api/${apiPath.split("/").map((segment) => encodeURIComponent(segment)).join("/")}`, origin);
+    for (const [name, value] of incoming.searchParams) {
+      if (name !== "path") target.searchParams.append(name, value);
+    }
 
     const headers = new Headers();
     for (const name of forwardedRequestHeaders) {
