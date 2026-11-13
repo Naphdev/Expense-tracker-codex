@@ -25,7 +25,7 @@ const router = createRouter({
         { path: "accounts", component: () => import("../views/AccountsView.vue") },
         { path: "recurring", component: () => import("../views/RecurringView.vue") },
         { path: "calendar", component: () => import("../views/CalendarView.vue") },
-        { path: "advisor", component: () => import("../views/AdvisorView.vue") },
+        { path: "advisor", redirect: "/" },
         { path: "reports", component: () => import("../views/ReportsView.vue") },
       ],
     },

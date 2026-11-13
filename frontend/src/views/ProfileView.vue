@@ -109,7 +109,6 @@ const links = [
   { to: "/accounts", key: "nav.accounts" },
   { to: "/recurring", key: "nav.recurring" },
   { to: "/calendar", key: "nav.calendar" },
-  { to: "/advisor", key: "nav.advisor" },
   { to: "/reports", key: "nav.reports" },
 ];
 </script>

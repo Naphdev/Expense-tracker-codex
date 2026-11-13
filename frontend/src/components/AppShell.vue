@@ -159,7 +159,6 @@ const more = computed(() => [
   ...(!auth.isOfflineSession ? [
     { to: "/recurring", label: t("nav.recurring") },
     { to: "/calendar", label: t("nav.calendar") },
-    { to: "/advisor", label: t("nav.advisor") },
     { to: "/reports", label: t("nav.reports") },
   ] : []),
 ]);
@@ -171,7 +170,6 @@ const mobileMore = computed(() => [
   ...(!auth.isOfflineSession ? [
     { to: "/recurring", label: t("nav.recurring"), icon: "repeat" as const },
     { to: "/calendar", label: t("nav.calendar"), icon: "calendar" as const },
-    { to: "/advisor", label: t("nav.advisor"), icon: "advisor" as const },
     { to: "/reports", label: t("nav.reports"), icon: "report" as const },
   ] : []),
   { to: "/profile", label: t("nav.profile"), icon: "user" as const },
