@@ -12,7 +12,7 @@ import { applyBalanceChange, getOwnedAccount, withOptionalTransaction } from "..
 import { budgetProgress, estimateGoalCompletion } from "../services/financeCalc.js";
 import { createRecurring, processDueRecurring, updateRecurring } from "../services/recurringService.js";
 import { getAdvice } from "../services/aiService.js";
-import { buildExcel, buildPdf } from "../services/reportService.js";
+import { buildExcel, buildPdf, type ReportExportOptions } from "../services/reportService.js";
 import { calendarParts } from "../utils/dates.js";
 import { Transaction } from "../models/Transaction.js";
 import { createTransaction, deleteTransaction, updateTransaction, type TxInput } from "../services/transactionService.js";
@@ -255,16 +255,16 @@ export async function deleteConversation(req: Request, res: Response) {
 }
 
 export async function exportPdf(req: Request, res: Response) {
-  const range = (req.query.range as "this_month") || "this_month";
-  const buffer = await buildPdf(req.user!.id, req.user!.timezone, range, req.query.startDate as string, req.query.endDate as string);
+  const options = req.query as unknown as ReportExportOptions;
+  const buffer = await buildPdf(req.user!.id, req.user!.timezone, options);
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", "attachment; filename=finance-report.pdf");
   return res.send(buffer);
 }
 
 export async function exportExcel(req: Request, res: Response) {
-  const range = (req.query.range as "this_month") || "this_month";
-  const buffer = await buildExcel(req.user!.id, req.user!.timezone, range, req.query.startDate as string, req.query.endDate as string);
+  const options = req.query as unknown as ReportExportOptions;
+  const buffer = await buildExcel(req.user!.id, req.user!.timezone, options);
   res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   res.setHeader("Content-Disposition", "attachment; filename=finance-report.xlsx");
   return res.send(buffer);

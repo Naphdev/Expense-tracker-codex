@@ -1,6 +1,6 @@
 # Product glossary
 
-This glossary covers transaction import and finance reminders in [ADR 0001](adr/0001-csv-import-and-finance-reminders.md). Terms describe the product domain, not final API names.
+This glossary covers transaction import and finance reminders in [ADR 0001](adr/0001-csv-import-and-finance-reminders.md), plus personal finance reports in [ADR 0002](adr/0002-personal-finance-reports.md). Terms describe the product domain, not final API names.
 
 | Term | Meaning |
 | --- | --- |
@@ -18,3 +18,11 @@ This glossary covers transaction import and finance reminders in [ADR 0001](adr/
 | Budget alert | A web inbox notification when a budget reaches 80% or 100% usage. |
 | Recurring reminder | A web inbox notification sent one day before a recurring schedule is due. The schedule still creates its transaction automatically on the due date. |
 | Finance reminder | A persistent, user-scoped web inbox notification with an unread count. Users mark individual or all notifications as read; opening the inbox does not change read state. |
+| Report period | The inclusive dates selected for an exported financial overview. Presets use the user's timezone; a custom period includes both chosen dates. |
+| Comparison period | The earlier date range shown alongside the selected period. It is the same length for in-progress and custom ranges; a completed previous month compares with the preceding calendar month. |
+| Net cash flow | Completed income minus completed expenses in the selected period. Transfers and pending transactions do not contribute. |
+| Net cash flow rate | Net cash flow divided by completed income, expressed as a percentage. It is zero when there is no income in the period. |
+| Pending transaction export | Transactions awaiting completion, listed separately and excluded from completed cash-flow totals. |
+| Transfer export | Completed transfers with source and destination accounts, listed separately and excluded from income and expense totals. |
+| Budget comparison scope | Monthly budget usage compared against completed expenses across all accounts for the selected dates, even when an account filter is selected for transactions. |
+| Goal snapshot | Current saved amount, target, and progress for each non-cancelled saving goal at the time a report is generated. It is not historical progress. |

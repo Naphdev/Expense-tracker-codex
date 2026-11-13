@@ -131,6 +131,33 @@ export const rangeQuery = z.object({
   }),
 });
 
+const reportDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
+  const parsed = new Date(value + "T00:00:00.000Z");
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}, "Invalid calendar date");
+const reportCategory = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES, "transfer"];
+
+export const reportExportQuery = z.object({
+  query: z.object({
+    range: z.enum(["this_week", "this_month", "last_month", "this_year", "custom"]).default("this_month"),
+    startDate: reportDate.optional(),
+    endDate: reportDate.optional(),
+    compare: z.enum(["true", "false"]).default("true").transform((value) => value === "true"),
+    accountId: objectId.optional(),
+    type: z.enum(["all", ...TRANSACTION_TYPES]).default("all"),
+    category: z.string().optional().refine((value) => !value || reportCategory.includes(value), "Invalid category"),
+    language: z.enum(["th", "en"]).default("en"),
+    pdfLayout: z.enum(["summary", "detailed"]).default("summary"),
+  }).superRefine((value, ctx) => {
+    if (value.range === "custom" && (!value.startDate || !value.endDate)) {
+      ctx.addIssue({ code: "custom", message: "Custom ranges require both dates", path: ["startDate"] });
+    }
+    if (value.startDate && value.endDate && value.startDate > value.endDate) {
+      ctx.addIssue({ code: "custom", message: "Start date must not follow end date", path: ["startDate"] });
+    }
+  }),
+});
+
 export const aiAdviceSchema = z.object({
   body: z.object({
     message: z.string().min(1).max(2000),
