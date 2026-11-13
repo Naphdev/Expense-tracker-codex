@@ -15,6 +15,7 @@ import {
   goalSchema,
   idParams,
   rangeQuery,
+  reportExportQuery,
   recurringSchema,
   syncSchema,
   transactionSchema,
@@ -86,6 +87,6 @@ router.get("/ai/conversations", asyncHandler(resCtrl.listConversations));
 router.get("/ai/conversations/:id", validate(idParams), asyncHandler(resCtrl.getConversation));
 router.delete("/ai/conversations/:id", validate(idParams), asyncHandler(resCtrl.deleteConversation));
 
-router.get("/reports/export/pdf", asyncHandler(resCtrl.exportPdf));
-router.get("/reports/export/excel", asyncHandler(resCtrl.exportExcel));
+router.get("/reports/export/pdf", validate(reportExportQuery), asyncHandler(resCtrl.exportPdf));
+router.get("/reports/export/excel", validate(reportExportQuery), asyncHandler(resCtrl.exportExcel));
 router.post("/sync", validate(syncSchema), asyncHandler(resCtrl.syncOffline));
