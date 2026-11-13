@@ -2,10 +2,11 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { RouterLink } from "vue-router";
-import PageHeader from "@/components/PageHeader.vue";
-import { api } from "@/lib/api";
-import { parseImportFile, type ParsedImportTable } from "@/lib/importFiles";
-import { formatDate, formatTHB } from "@/lib/money";
+import PageHeader from "../components/PageHeader.vue";
+import { api } from "../lib/api";
+import { parseImportFile, type ParsedImportTable } from "../lib/importFiles";
+import { formatDate, formatTHB } from "../lib/money";
+import { requestNotificationRefresh } from "../lib/notificationEvents";
 
 type TxType = "income" | "expense";
 type DateFormat = "auto" | "dmy" | "mdy" | "ymd";
@@ -423,6 +424,7 @@ async function importSelected() {
       }
     }
     importSummary.value = summary;
+    if (summary.imported > 0) requestNotificationRefresh();
     step.value = 3;
   } catch {
     pageError.value = t("import.resultError");

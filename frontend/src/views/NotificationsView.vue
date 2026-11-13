@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed } from "vue";
 import { RouterLink } from "vue-router";
 import { useI18n } from "vue-i18n";
-import PageHeader from "@/components/PageHeader.vue";
-import { formatTHB } from "@/lib/money";
-import { useNotificationStore, type FinanceNotification } from "@/stores/notifications";
+import PageHeader from "../components/PageHeader.vue";
+import { formatTHB } from "../lib/money";
+import { useNotificationStore, type FinanceNotification } from "../stores/notifications";
 
 const { t, locale } = useI18n();
 const notifications = useNotificationStore();
@@ -69,7 +69,6 @@ async function markAllRead() {
   }
 }
 
-onMounted(() => notifications.load(100));
 </script>
 
 <template>

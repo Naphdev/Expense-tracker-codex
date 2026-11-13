@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import PageHeader from "@/components/PageHeader.vue";
-import { api } from "@/lib/api";
-import { formatTHB } from "@/lib/money";
-import { useToastStore } from "@/stores/toast";
+import PageHeader from "../components/PageHeader.vue";
+import { api } from "../lib/api";
+import { formatTHB } from "../lib/money";
+import { useToastStore } from "../stores/toast";
+import { requestNotificationRefresh } from "../lib/notificationEvents";
 
 const { t, locale } = useI18n();
 const toast = useToastStore();
@@ -17,6 +18,7 @@ async function load() {
 }
 async function create() {
   await api.post("/budgets", { ...form, amount: Number(form.amount) });
+  requestNotificationRefresh();
   form.amount = "";
   toast.show(t("common.saved"));
   await load();

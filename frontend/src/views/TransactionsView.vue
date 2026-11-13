@@ -2,15 +2,15 @@
 import { onMounted, ref, toRaw } from "vue";
 import { RouterLink } from "vue-router";
 import { useI18n } from "vue-i18n";
-import PageHeader from "@/components/PageHeader.vue";
-import { api } from "@/lib/api";
+import PageHeader from "../components/PageHeader.vue";
+import { api } from "../lib/api";
 import {
   cacheTransactions,
   getAllTransactions,
   type LocalTransaction,
-} from "@/lib/offlineDb";
-import { formatDate, formatTHB } from "@/lib/money";
-import { useSyncStore } from "@/stores/sync";
+} from "../lib/offlineDb";
+import { formatDate, formatTHB } from "../lib/money";
+import { useSyncStore } from "../stores/sync";
 
 const { t, locale } = useI18n();
 const sync = useSyncStore();

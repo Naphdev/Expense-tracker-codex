@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import PageHeader from "@/components/PageHeader.vue";
-import { api } from "@/lib/api";
-import { formatDate, formatTHB, todayISO } from "@/lib/money";
+import PageHeader from "../components/PageHeader.vue";
+import { api } from "../lib/api";
+import { formatDate, formatTHB, todayISO } from "../lib/money";
 
 const { t, locale } = useI18n();
 const items = ref<Array<Record<string, unknown>>>([]);

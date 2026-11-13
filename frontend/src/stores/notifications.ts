@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { api } from "@/lib/api";
+import { api } from "../lib/api";
 
 export interface FinanceNotification {
   id: string;
@@ -15,16 +15,24 @@ export const useNotificationStore = defineStore("notifications", () => {
   const unreadCount = ref(0);
   const loading = ref(false);
   const error = ref("");
+  const knownIds = new Set<string>();
+  let initialized = false;
 
   async function load(limit = 50) {
     loading.value = true;
     error.value = "";
     try {
       const response = await api.get("/notifications", { params: { limit } });
-      items.value = response.data.data.items;
+      const nextItems = response.data.data.items as FinanceNotification[];
+      const addedItems = initialized ? nextItems.filter((item) => !knownIds.has(item.id)) : [];
+      for (const item of nextItems) knownIds.add(item.id);
+      initialized = true;
+      items.value = nextItems;
       unreadCount.value = response.data.data.unreadCount;
+      return addedItems;
     } catch {
       error.value = "notificationsUnavailable";
+      return [];
     } finally {
       loading.value = false;
     }

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import PageHeader from "@/components/PageHeader.vue";
-import { api } from "@/lib/api";
-import { formatTHB } from "@/lib/money";
-import { useToastStore } from "@/stores/toast";
+import PageHeader from "../components/PageHeader.vue";
+import { api } from "../lib/api";
+import { formatTHB } from "../lib/money";
+import { useToastStore } from "../stores/toast";
 
 const { t, locale } = useI18n();
 const toast = useToastStore();

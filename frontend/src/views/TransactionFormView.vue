@@ -2,11 +2,12 @@
 import { onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import PageHeader from "@/components/PageHeader.vue";
-import { api } from "@/lib/api";
-import { todayISO } from "@/lib/money";
-import { useSyncStore } from "@/stores/sync";
-import { useToastStore } from "@/stores/toast";
+import PageHeader from "../components/PageHeader.vue";
+import { api } from "../lib/api";
+import { todayISO } from "../lib/money";
+import { useSyncStore } from "../stores/sync";
+import { useToastStore } from "../stores/toast";
+import { requestNotificationRefresh } from "../lib/notificationEvents";
 
 const incomeCats = ["salary", "freelance", "business", "investment_income", "bonus", "other"];
 const expenseCats = ["food", "transportation", "shopping", "housing", "utilities", "entertainment", "healthcare", "education", "subscription", "other"];
@@ -95,6 +96,7 @@ async function save() {
         pending: true,
       });
     }
+    requestNotificationRefresh();
     toast.show(t("common.saved"));
     await router.push("/transactions");
   } catch {

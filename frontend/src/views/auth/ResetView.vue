@@ -2,8 +2,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import AuthLayout from "@/components/AuthLayout.vue";
-import { api } from "@/lib/api";
+import AuthLayout from "../../components/AuthLayout.vue";
+import { api } from "../../lib/api";
 
 const router = useRouter();
 const route = useRoute();

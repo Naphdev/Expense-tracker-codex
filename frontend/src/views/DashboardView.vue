@@ -26,14 +26,14 @@ import {
 
 } from "chart.js";
 
-import RangeSelect from "@/components/RangeSelect.vue";
+import RangeSelect from "../components/RangeSelect.vue";
 
-import { api } from "@/lib/api";
+import { api } from "../lib/api";
 
-import { formatTHB } from "@/lib/money";
+import { formatTHB } from "../lib/money";
 
-import { useAuthStore } from "@/stores/auth";
-import { useThemeStore } from "@/stores/theme";
+import { useAuthStore } from "../stores/auth";
+import { useThemeStore } from "../stores/theme";
 
 
 
