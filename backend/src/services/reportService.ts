@@ -702,8 +702,8 @@ export async function buildExcel(userId: string, timezone: string, options: Repo
 
 function resolveThaiFont() {
   const candidates = [
-    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../assets/NotoSansThai-Regular.ttf"),
     process.env.REPORT_THAI_FONT_PATH,
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../assets/NotoSansThai-Variable.ttf"),
     process.platform === "win32" ? "C:\\Windows\\Fonts\\tahoma.ttf" : "",
   ].filter((value): value is string => Boolean(value));
   for (const candidate of candidates) {
