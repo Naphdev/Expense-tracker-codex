@@ -110,3 +110,12 @@ export async function markAllNotificationsRead(userId: string) {
   const result = await FinanceNotification.updateMany({ userId, readAt: null }, { $set: { readAt: new Date() } });
   return { modified: result.modifiedCount };
 }
+
+export async function deleteNotification(userId: string, id: string) {
+  return FinanceNotification.findOneAndDelete({ _id: id, userId });
+}
+
+export async function deleteAllNotifications(userId: string) {
+  const result = await FinanceNotification.deleteMany({ userId });
+  return { deleted: result.deletedCount };
+}

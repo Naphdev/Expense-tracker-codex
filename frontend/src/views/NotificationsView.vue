@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, nextTick, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { useI18n } from "vue-i18n";
 import PageHeader from "../components/PageHeader.vue";
@@ -9,6 +9,12 @@ import { useNotificationStore, type FinanceNotification } from "../stores/notifi
 const { t, locale } = useI18n();
 const notifications = useNotificationStore();
 const hasItems = computed(() => notifications.items.length > 0);
+const deleteError = computed(() => notifications.error === "deleteFailed");
+const deleteDialog = ref<HTMLDialogElement | null>(null);
+const deleteCancelButton = ref<HTMLButtonElement | null>(null);
+const pendingDeleteId = ref<string | null>(null);
+const deleting = ref(false);
+const pendingDeleteItem = computed(() => notifications.items.find((item) => item.id === pendingDeleteId.value));
 
 function title(item: FinanceNotification) {
   if (item.type === "budget_threshold") {
@@ -69,21 +75,59 @@ async function markAllRead() {
   }
 }
 
+async function openDeleteOne(id: string) {
+  pendingDeleteId.value = id;
+  notifications.error = "";
+  deleteDialog.value?.showModal();
+  await nextTick();
+  deleteCancelButton.value?.focus();
+}
+
+async function openDeleteAll() {
+  pendingDeleteId.value = null;
+  notifications.error = "";
+  deleteDialog.value?.showModal();
+  await nextTick();
+  deleteCancelButton.value?.focus();
+}
+
+function keepDeleteDialogOpen(event: Event) {
+  if (deleting.value) event.preventDefault();
+}
+
+async function confirmDelete() {
+  if (deleting.value) return;
+  const id = pendingDeleteId.value;
+  notifications.error = "";
+  deleting.value = true;
+  try {
+    if (id) await notifications.remove(id);
+    else await notifications.removeAll();
+    deleteDialog.value?.close();
+  } catch {
+    notifications.error = "deleteFailed";
+  } finally {
+    deleting.value = false;
+  }
+}
+
 </script>
 
 <template>
   <section class="mx-auto max-w-3xl space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <PageHeader eyebrow="Personal finance / Inbox" :title="t('notifications.title')" />
-      <button
-        v-if="notifications.unreadCount"
-        type="button"
-        class="btn-ghost"
-        @click="markAllRead"
-      >
-        {{ t("notifications.markAll") }}
-      </button>
+      <div class="flex flex-wrap gap-2">
+        <button v-if="notifications.unreadCount" type="button" class="btn-ghost" @click="markAllRead">
+          {{ t("notifications.markAll") }}
+        </button>
+        <button v-if="hasItems" type="button" class="btn-ghost min-h-11 !text-danger" @click="openDeleteAll">
+          {{ t("notifications.deleteAll") }}
+        </button>
+      </div>
     </div>
+
+    <p v-if="deleteError" class="text-sm text-danger" role="alert">{{ t("notifications.deleteFailed") }}</p>
 
     <div v-if="notifications.loading && !hasItems" class="space-y-3" aria-live="polite">
       <div v-for="item in 4" :key="item" class="h-24 animate-pulse rounded-2xl bg-surface-2" />
@@ -138,10 +182,86 @@ async function markAllRead() {
               <button v-if="!item.readAt" type="button" class="btn-ghost min-h-11" @click="markRead(item.id)">
                 {{ t("notifications.markRead") }}
               </button>
+              <button type="button" class="btn-ghost min-h-11 !text-danger" :aria-label="t('notifications.deleteOne')" @click="openDeleteOne(item.id)">
+                {{ t("notifications.deleteOne") }}
+              </button>
             </div>
           </div>
         </article>
       </li>
     </ul>
+
+    <dialog
+      ref="deleteDialog"
+      class="delete-dialog"
+      aria-labelledby="delete-dialog-title"
+      aria-describedby="delete-dialog-description"
+      @cancel="keepDeleteDialogOpen"
+      @close="notifications.error = ''"
+    >
+      <section class="delete-dialog-panel card p-5 sm:p-6">
+        <div class="flex items-start gap-4">
+          <div class="grid size-12 shrink-0 place-items-center rounded-2xl bg-danger-soft text-danger" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3.75 2.9 19.5a1.4 1.4 0 0 0 1.2 2.1h15.8a1.4 1.4 0 0 0 1.2-2.1L12 3.75Z" />
+              <path d="M12 9v5.25M12 17.5h.01" />
+            </svg>
+          </div>
+          <div class="min-w-0 pt-0.5">
+            <h2 id="delete-dialog-title" class="text-lg font-semibold leading-6 text-ink">
+              {{ pendingDeleteId ? t('notifications.confirmDeleteTitle') : t('notifications.confirmDeleteAllTitle') }}
+            </h2>
+            <p id="delete-dialog-description" class="mt-2 text-sm leading-6 text-muted">
+              {{ pendingDeleteId ? t('notifications.confirmDeleteWarning') : t('notifications.confirmDeleteAll', { count: notifications.items.length }) }}
+            </p>
+          </div>
+        </div>
+
+        <div v-if="pendingDeleteItem" class="mt-5 rounded-xl border border-line bg-surface-2 px-4 py-3">
+          <p class="text-xs font-medium text-muted">{{ t('notifications.title') }}</p>
+          <p class="mt-1 break-words text-sm font-semibold text-ink">{{ title(pendingDeleteItem) }}</p>
+          <p class="mt-1 break-words text-xs text-muted">{{ body(pendingDeleteItem) }}</p>
+        </div>
+
+        <p v-if="deleteError" class="mt-4 rounded-xl bg-danger-soft px-3 py-2 text-sm font-medium text-danger" role="alert">{{ t('notifications.deleteFailed') }}</p>
+
+        <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <button ref="deleteCancelButton" class="btn-ghost w-full sm:w-auto" type="button" :disabled="deleting" @click="deleteDialog?.close()">
+            {{ t('common.cancel') }}
+          </button>
+          <button class="btn-danger w-full sm:w-auto" type="button" :disabled="deleting" @click="confirmDelete">
+            {{ deleting ? t('common.loading') : pendingDeleteId ? t('notifications.deleteOne') : t('notifications.deleteAll') }}
+          </button>
+        </div>
+      </section>
+    </dialog>
   </section>
 </template>
+
+<style scoped>
+.delete-dialog {
+  width: min(28rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.delete-dialog::backdrop {
+  background: rgb(12 23 40 / 58%);
+  backdrop-filter: blur(3px);
+}
+
+.delete-dialog-panel {
+  animation: delete-dialog-enter 160ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes delete-dialog-enter {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+</style>

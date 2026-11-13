@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { onMounted, ref, toRaw } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 import { useI18n } from "vue-i18n";
 import PageHeader from "../components/PageHeader.vue";
 import { api } from "../lib/api";
-import {
-  cacheTransactions,
-  getAllTransactions,
-  type LocalTransaction,
-} from "../lib/offlineDb";
+import type { LocalTransaction } from "../lib/offlineDb";
 import { formatDate, formatTHB } from "../lib/money";
 import { useSyncStore } from "../stores/sync";
+import { useAuthStore } from "../stores/auth";
 
 const { t, locale } = useI18n();
 const sync = useSyncStore();
+const auth = useAuthStore();
 const items = ref<LocalTransaction[]>([]);
+const offlineItems = ref<LocalTransaction[]>([]);
 const search = ref("");
 const type = ref("");
 const category = ref("");
@@ -40,8 +39,20 @@ async function load() {
   loading.value = true;
   error.value = "";
   try {
-    console.log("Online:", sync.online);
-    if (sync.online) {
+    if (auth.isOfflineSession) {
+      if (!offlineItems.value.length) offlineItems.value = auth.offlineSnapshot?.transactions ?? [];
+      let filtered = [...offlineItems.value];
+      const query = search.value.trim().toLocaleLowerCase();
+      if (query) filtered = filtered.filter((item) => `${item.title} ${item.description ?? ""} ${item.category}`.toLocaleLowerCase().includes(query));
+      if (type.value) filtered = filtered.filter((item) => item.type === type.value);
+      if (category.value) filtered = filtered.filter((item) => item.category === category.value);
+      if (startDate.value) filtered = filtered.filter((item) => item.date >= startDate.value);
+      if (endDate.value) filtered = filtered.filter((item) => item.date <= endDate.value);
+      filtered.sort((a, b) => sort.value.startsWith("amount")
+        ? (sort.value.endsWith("asc") ? 1 : -1) * (a.amount - b.amount)
+        : (sort.value.endsWith("asc") ? 1 : -1) * a.date.localeCompare(b.date));
+      items.value = filtered;
+    } else if (sync.online) {
       const res = await api.get("/transactions", {
         params: {
           search: search.value || undefined,
@@ -54,23 +65,21 @@ async function load() {
         },
       });
       items.value = res.data.data.items;
-      // await cacheTransactions(items.value);
-      await cacheTransactions(JSON.parse(JSON.stringify(toRaw(items.value))));
     } else {
-      items.value = await getAllTransactions();
+      error.value = t("offline.unlockRequired");
     }
   } catch {
-    try {
-      items.value = await getAllTransactions();
-    } catch {
-      error.value = t("common.error");
-    }
+    error.value = auth.isOfflineSession ? t("common.error") : t("offline.unlockRequired");
   } finally {
     loading.value = false;
   }
 }
 
 onMounted(load);
+watch(() => auth.isOfflineSession, (isOffline) => {
+  if (isOffline) offlineItems.value = auth.offlineSnapshot?.transactions ?? [];
+  void load();
+});
 </script>
 <template>
   <section class="space-y-6">
@@ -80,7 +89,7 @@ onMounted(load);
       subtitle="Search and filter all of your money movements."
     >
       <template #actions>
-        <RouterLink to="/transactions/import" class="btn-ghost min-h-11">{{ t("import.title") }}</RouterLink>
+        <RouterLink v-if="!auth.isOfflineSession" to="/transactions/import" class="btn-ghost min-h-11">{{ t("import.title") }}</RouterLink>
       </template>
     </PageHeader>
 
@@ -141,8 +150,9 @@ onMounted(load);
 
     <ul v-else class="space-y-2">
       <li v-for="item in items" :key="item.id">
-        <RouterLink
-          :to="`/transactions/${item.id}`"
+        <component
+          :is="auth.isOfflineSession ? 'article' : RouterLink"
+          :to="auth.isOfflineSession ? undefined : `/transactions/${item.id}`"
           class="card flex items-center justify-between gap-3 px-5 py-4"
         >
           <div class="flex min-w-0 items-center gap-3">
@@ -204,7 +214,7 @@ onMounted(load);
               item.type === "expense" ? "-" : item.type === "income" ? "+" : ""
             }}{{ formatTHB(item.amount, locale) }}
           </p>
-        </RouterLink>
+        </component>
       </li>
     </ul>
   </section>

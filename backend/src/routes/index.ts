@@ -47,6 +47,8 @@ router.get("/dashboard/categories", validate(rangeQuery), asyncHandler(dash.cate
 router.get("/calendar", asyncHandler(resCtrl.calendar));
 router.get("/notifications", asyncHandler(notification.list));
 router.post("/notifications/read-all", asyncHandler(notification.markAllRead));
+router.delete("/notifications", asyncHandler(notification.removeAll));
+router.delete("/notifications/:id", validate(idParams), asyncHandler(notification.remove));
 router.patch("/notifications/:id/read", validate(idParams), asyncHandler(notification.markRead));
 
 router.get("/transactions", asyncHandler(tx.list));

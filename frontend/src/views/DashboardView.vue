@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 import { RouterLink } from "vue-router";
 
@@ -66,6 +66,12 @@ async function load() {
 
   error.value = "";
 
+  if (auth.isOfflineSession) {
+    data.value = auth.offlineSnapshot?.summary ?? null;
+    loading.value = false;
+    return;
+  }
+
   try {
 
     const params = {
@@ -102,6 +108,7 @@ async function load() {
 
 
 onMounted(load);
+watch(() => auth.isOfflineSession, load);
 
 
 
@@ -206,7 +213,7 @@ const chartColors = computed(() => chartTone.value.categories);
 
       </div>
 
-      <div class="w-full sm:w-auto sm:min-w-[250px]">
+      <div v-if="!auth.isOfflineSession" class="w-full sm:w-auto sm:min-w-[250px]">
 
         <RangeSelect
 
@@ -221,6 +228,7 @@ const chartColors = computed(() => chartTone.value.categories);
         />
 
       </div>
+      <p v-else class="text-sm text-muted">{{ t("pwa.offlineReadOnly") }}</p>
 
     </header>
 

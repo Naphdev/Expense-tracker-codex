@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { ok } from "../utils/apiResponse.js";
 import { AppError } from "../utils/AppError.js";
-import { listUserNotifications, markAllNotificationsRead, markNotificationRead } from "../services/notificationService.js";
+import { deleteAllNotifications as removeAllNotifications, deleteNotification as removeOne, listUserNotifications, markAllNotificationsRead, markNotificationRead } from "../services/notificationService.js";
 
 export async function list(req: Request, res: Response) {
   const requestedLimit = Number(req.query.limit ?? 50);
@@ -17,4 +17,14 @@ export async function markRead(req: Request, res: Response) {
 
 export async function markAllRead(_req: Request, res: Response) {
   return ok(res, await markAllNotificationsRead(_req.user!.id));
+}
+
+export async function remove(req: Request, res: Response) {
+  const item = await removeOne(req.user!.id, req.params.id);
+  if (!item) throw new AppError("Notification not found", 404);
+  return ok(res, { id: item.id });
+}
+
+export async function removeAll(req: Request, res: Response) {
+  return ok(res, await removeAllNotifications(req.user!.id));
 }

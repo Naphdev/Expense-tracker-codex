@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import PageHeader from "../components/PageHeader.vue";
 import { api } from "../lib/api";
 import { formatTHB } from "../lib/money";
+import { useAuthStore } from "../stores/auth";
 
 const { t, locale } = useI18n();
+const auth = useAuthStore();
 const items = ref<{ id: string; name: string; accountType: string; balance: number }[]>([]);
 const form = reactive({ name: "", accountType: "cash", balance: "0" });
 
 async function load() {
+  if (auth.isOfflineSession) {
+    items.value = (auth.offlineSnapshot?.accounts ?? []) as typeof items.value;
+    return;
+  }
   items.value = (await api.get("/accounts")).data.data;
 }
 async function create() {
@@ -17,6 +23,7 @@ async function create() {
   await load();
 }
 onMounted(load);
+watch(() => auth.isOfflineSession, load);
 
 const typeStyle: Record<string, string> = {
   cash: "bg-success-soft text-success",
@@ -36,7 +43,7 @@ const total = () => items.value.reduce((sum, a) => sum + a.balance, 0);
       <p class="mt-2 text-[14px] tracking-[-0.01em] text-muted">{{ items.length }} {{ items.length === 1 ? "account" : "accounts" }}</p>
     </div>
 
-    <form class="card grid gap-3 p-5 sm:grid-cols-2 sm:p-6" @submit.prevent="create">
+    <form v-if="!auth.isOfflineSession" class="card grid gap-3 p-5 sm:grid-cols-2 sm:p-6" @submit.prevent="create">
       <label class="grid gap-1.5"><span class="label">{{ t("tx.title") }}</span><input v-model="form.name" class="field" required /></label>
       <label class="grid gap-1.5"><span class="label">{{ t("accounts.title") }}</span>
         <select v-model="form.accountType" class="field">

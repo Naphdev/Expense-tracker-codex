@@ -106,11 +106,7 @@ async function submit() {
 
       <!-- Logo -->
       <RouterLink to="/" class="relative z-10 flex w-fit items-center gap-3">
-        <span
-          class="grid h-11 w-11 place-items-center rounded-2xl bg-primary text-xl font-bold text-white"
-        >
-          $
-        </span>
+        <img src="/finance-letter-f.svg" alt="" class="h-11 w-11 rounded-2xl" />
 
         <span class="text-xl font-bold tracking-tight text-[#14233B]">
           ExpenseFlow
@@ -230,11 +226,7 @@ async function submit() {
     >
       <!-- Mobile Logo -->
       <RouterLink to="/" class="flex w-fit items-center gap-3 lg:hidden">
-        <span
-          class="grid h-10 w-10 place-items-center rounded-xl bg-primary text-lg font-bold text-white"
-        >
-          $
-        </span>
+        <img src="/finance-letter-f.svg" alt="" class="h-10 w-10 rounded-xl" />
 
         <span class="text-lg font-bold tracking-tight text-[#14233B]">
           ExpenseFlow

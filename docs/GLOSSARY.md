@@ -1,6 +1,6 @@
 # Product glossary
 
-This glossary covers transaction import and finance reminders in [ADR 0001](adr/0001-csv-import-and-finance-reminders.md), plus personal finance reports in [ADR 0002](adr/0002-personal-finance-reports.md). Terms describe the product domain, not final API names.
+This glossary covers transaction import and finance reminders in [ADR 0001](adr/0001-csv-import-and-finance-reminders.md), personal finance reports in [ADR 0002](adr/0002-personal-finance-reports.md), and mobile PWA access in [ADR 0003](adr/0003-mobile-pwa-and-offline-access.md). Terms describe the product domain, not final API names.
 
 | Term | Meaning |
 | --- | --- |
@@ -26,3 +26,9 @@ This glossary covers transaction import and finance reminders in [ADR 0001](adr/
 | Transfer export | Completed transfers with source and destination accounts, listed separately and excluded from income and expense totals. |
 | Budget comparison scope | Monthly budget usage compared against completed expenses across all accounts for the selected dates, even when an account filter is selected for transactions. |
 | Goal snapshot | Current saved amount, target, and progress for each non-cancelled saving goal at the time a report is generated. It is not historical progress. |
+| Install availability | Whether the current browser can open a native install prompt, needs manual home-screen instructions, or already has the app installed. |
+| Offline passcode | A device-local code used to unlock one user's encrypted offline financial snapshot; it does not sign in to the server. |
+| Offline snapshot | The latest synchronized, user-scoped financial data kept on the device for offline reading. |
+| Snapshot freshness | The last successful synchronization time shown alongside offline data. |
+| Pending operation | A financial change saved on the device and waiting to synchronize with the server. |
+| Same-origin API proxy | A server-side route that forwards `/api` requests to the backend while the browser continues to call the app's own site. |

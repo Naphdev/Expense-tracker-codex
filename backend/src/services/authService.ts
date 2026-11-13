@@ -56,8 +56,8 @@ export async function loginUser(email: string, password: string) {
 export async function requestPasswordReset(email: string) {
   const env = loadEnv();
   const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) throw new AppError("Email is not registered", 404);
   const generic = { message: "If that email exists, a reset link was generated." };
-  if (!user) return generic;
   const token = crypto.randomBytes(32).toString("hex");
   user.passwordResetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
   user.passwordResetExpires = new Date(Date.now() + env.PASSWORD_RESET_EXPIRES_MINUTES * 60 * 1000);

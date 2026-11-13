@@ -54,5 +54,20 @@ export const useNotificationStore = defineStore("notifications", () => {
     unreadCount.value = 0;
   }
 
-  return { items, unreadCount, loading, error, load, markRead, markAllRead };
+  async function remove(id: string) {
+    await api.delete(`/notifications/${id}`);
+    const item = items.value.find((notification) => notification.id === id);
+    if (item && !item.readAt) unreadCount.value = Math.max(0, unreadCount.value - 1);
+    items.value = items.value.filter((notification) => notification.id !== id);
+    knownIds.delete(id);
+  }
+
+  async function removeAll() {
+    await api.delete("/notifications");
+    items.value = [];
+    unreadCount.value = 0;
+    knownIds.clear();
+  }
+
+  return { items, unreadCount, loading, error, load, markRead, markAllRead, remove, removeAll };
 });
