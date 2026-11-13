@@ -21,6 +21,7 @@ const offlinePassphraseConfirm = ref("");
 const offlineError = ref("");
 const offlineSuccess = ref(false);
 const offlineSaving = ref(false);
+const installHelpOpen = ref(false);
 
 async function refreshOfflineStatus() {
   const metadata = await readOfflineVaultMetadata().catch(() => null);
@@ -140,6 +141,7 @@ const links = [
         </div>
         <span v-if="installed" class="chip shrink-0 bg-success-soft text-success">{{ t("profile.installed") }}</span>
         <button v-else-if="canPromptInstall" class="btn-primary min-h-11 shrink-0 px-4" type="button" @click="installPwa">{{ t("profile.installNow") }}</button>
+        <button v-else-if="!shouldShowIosGuide" class="btn-ghost min-h-11 shrink-0 px-4" type="button" :aria-expanded="installHelpOpen" aria-controls="profile-install-help" @click="installHelpOpen = !installHelpOpen">{{ t("profile.installHelp") }}</button>
       </div>
 
       <ol v-if="shouldShowIosGuide" class="grid gap-2 rounded-xl bg-surface-2 p-4 text-sm leading-6 text-text">
@@ -147,7 +149,7 @@ const links = [
         <li>{{ t("profile.iosInstallStep2") }}</li>
         <li>{{ t("profile.iosInstallStep3") }}</li>
       </ol>
-      <p v-else-if="!installed && !canPromptInstall" class="rounded-xl bg-surface-2 px-4 py-3 text-xs leading-5 text-muted">{{ t("profile.installBrowserHelp") }}</p>
+      <p v-else-if="!installed && !canPromptInstall && installHelpOpen" id="profile-install-help" class="rounded-xl bg-surface-2 px-4 py-3 text-xs leading-5 text-muted">{{ t("profile.installBrowserHelp") }}</p>
     </section>
 
     <section class="card space-y-4 p-5" aria-labelledby="offline-data-title">

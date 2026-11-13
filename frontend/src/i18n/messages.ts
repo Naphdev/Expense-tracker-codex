@@ -167,7 +167,7 @@ export const messages = {
     profile: {
       title: "Profile", language: "Language", theme: "Theme", system: "System", light: "Light", dark: "Dark",
       installApp: "Install this app", installDescription: "Add Finance to your Home Screen for a faster, app-like experience.",
-      installed: "Installed", installNow: "Install", iosInstallStep1: "Tap the Share button in Safari.",
+      installed: "Installed", installNow: "Install", installHelp: "How to install", iosInstallStep1: "Tap the Share button in Safari.",
       iosInstallStep2: "Choose Add to Home Screen.", iosInstallStep3: "Tap Add to finish.",
       installBrowserHelp: "On desktop, open the browser menu and choose Install app. On iPhone or iPad, use Safari's Share menu; on Android, use Chrome's menu and choose Install app or Add to Home Screen.",
       offlineTitle: "Offline access", offlineDescription: "Save an encrypted copy of your latest totals and 50 recent transactions on this device.",
@@ -370,7 +370,7 @@ export const messages = {
     profile: {
       title: "โปรไฟล์", language: "ภาษา", theme: "ธีม", system: "ตามระบบ", light: "สว่าง", dark: "มืด",
       installApp: "ติดตั้งแอปนี้", installDescription: "เพิ่ม Finance ไว้บนหน้าจอหลักเพื่อเปิดใช้งานได้เหมือนแอป",
-      installed: "ติดตั้งแล้ว", installNow: "ติดตั้ง", iosInstallStep1: "แตะปุ่มแชร์ใน Safari",
+      installed: "ติดตั้งแล้ว", installNow: "ติดตั้ง", installHelp: "วิธีติดตั้ง", iosInstallStep1: "แตะปุ่มแชร์ใน Safari",
       iosInstallStep2: "เลือก เพิ่มไปยังหน้าจอโฮม", iosInstallStep3: "แตะ เพิ่ม เพื่อเสร็จสิ้น",
       installBrowserHelp: "บนคอมพิวเตอร์ เปิดเมนูเบราว์เซอร์แล้วเลือกติดตั้งแอป บน iPhone/iPad ใช้เมนูแชร์ของ Safari และบน Android เปิดเมนู Chrome แล้วเลือกติดตั้งแอปหรือเพิ่มไปยังหน้าจอหลัก",
       offlineTitle: "ใช้ข้อมูลออฟไลน์", offlineDescription: "บันทึกยอดล่าสุดและ 50 รายการล่าสุดบนอุปกรณ์นี้ในรูปแบบเข้ารหัส",
