@@ -3,8 +3,8 @@
 import { reactive, ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { useAuthStore } from "@/stores/auth";
-import { useToastStore } from "@/stores/toast";
+import { useAuthStore } from "../../stores/auth";
+import { useToastStore } from "../../stores/toast";
 
 const { t } = useI18n();
 const auth = useAuthStore();

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { api, unwrap } from "@/lib/api";
-import { clearUserData } from "@/lib/offlineDb";
+import { api, unwrap } from "../lib/api";
+import { clearUserData } from "../lib/offlineDb";
 
 export interface User {
   id: string;

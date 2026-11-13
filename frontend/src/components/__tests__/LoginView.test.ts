@@ -3,8 +3,8 @@ import { createI18n } from "vue-i18n";
 import { createPinia } from "pinia";
 import { describe, expect, it } from "vitest";
 import { createRouter, createMemoryHistory } from "vue-router";
-import LoginView from "@/views/auth/LoginView.vue";
-import { messages } from "@/i18n/messages";
+import LoginView from "../../views/auth/LoginView.vue";
+import { messages } from "../../i18n/messages";
 
 describe("LoginView", () => {
   it("validates short passwords", async () => {

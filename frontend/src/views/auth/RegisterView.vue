@@ -3,7 +3,7 @@
 import { computed, reactive, ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { useAuthStore } from "@/stores/auth";
+import { useAuthStore } from "../../stores/auth";
 
 const { t, locale } = useI18n();
 const auth = useAuthStore();

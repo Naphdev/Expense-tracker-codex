@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import PageHeader from "@/components/PageHeader.vue";
-import { api } from "@/lib/api";
-import { formatTHB } from "@/lib/money";
+import PageHeader from "../components/PageHeader.vue";
+import { api } from "../lib/api";
+import { formatTHB } from "../lib/money";
 
 const { t, locale } = useI18n();
 const weekdays = ["S", "M", "T", "W", "T", "F", "S"];

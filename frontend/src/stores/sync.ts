@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { api } from "@/lib/api";
-import { enqueue, getQueue, putTransaction, removeQueue, type LocalTransaction } from "@/lib/offlineDb";
+import { api } from "../lib/api";
+import { enqueue, getQueue, putTransaction, removeQueue, type LocalTransaction } from "../lib/offlineDb";
 
 export const useSyncStore = defineStore("sync", () => {
   const online = ref(typeof navigator === "undefined" ? true : navigator.onLine);

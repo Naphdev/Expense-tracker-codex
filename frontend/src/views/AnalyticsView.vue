@@ -3,11 +3,11 @@ import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Bar, Doughnut } from "vue-chartjs";
 import { Chart as ChartJS, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
-import PageHeader from "@/components/PageHeader.vue";
-import RangeSelect from "@/components/RangeSelect.vue";
-import { api } from "@/lib/api";
-import { formatTHB } from "@/lib/money";
-import { useThemeStore } from "@/stores/theme";
+import PageHeader from "../components/PageHeader.vue";
+import RangeSelect from "../components/RangeSelect.vue";
+import { api } from "../lib/api";
+import { formatTHB } from "../lib/money";
+import { useThemeStore } from "../stores/theme";
 
 ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 

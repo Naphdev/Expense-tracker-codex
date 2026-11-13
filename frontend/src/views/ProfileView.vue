@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { RouterLink, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import PageHeader from "@/components/PageHeader.vue";
-import { useAuthStore } from "@/stores/auth";
-import { useThemeStore, type ThemePref } from "@/stores/theme";
+import PageHeader from "../components/PageHeader.vue";
+import { useAuthStore } from "../stores/auth";
+import { useThemeStore, type ThemePref } from "../stores/theme";
 
 const { t, locale } = useI18n();
 const auth = useAuthStore();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatTHB } from "@/lib/money";
+import { formatTHB } from "../../lib/money";
 
 describe("money formatting", () => {
   it("formats Thai Baht", () => {
