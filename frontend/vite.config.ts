@@ -10,7 +10,16 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "prompt",
-      includeAssets: ["favicon.svg", "finance-letter-f.svg", "offline.html", "apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-512-maskable.png"],
+      includeAssets: [
+        "favicon.svg",
+        "finance-letter-f.svg",
+        "offline.html",
+        "apple-touch-icon.png",
+        "icons/icon-192.png",
+        "icons/icon-512.png",
+        "icons/icon-512-maskable.png",
+        "icons/finance-letter-f-maskable.svg",
+      ],
       manifest: {
         id: "/",
         name: "Personal Finance Advisor",
@@ -27,6 +36,7 @@ export default defineConfig({
           { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
           { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
           { src: "/icons/icon-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+          { src: "/icons/finance-letter-f-maskable.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
         ],
       },
       workbox: {
