@@ -3,6 +3,7 @@ import PDFDocument from "pdfkit";
 import mongoose from "mongoose";
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { Account } from "../models/Account.js";
 import { Budget } from "../models/Budget.js";
 import { SavingGoal } from "../models/SavingGoal.js";
@@ -701,6 +702,7 @@ export async function buildExcel(userId: string, timezone: string, options: Repo
 
 function resolveThaiFont() {
   const candidates = [
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../assets/NotoSansThai-Regular.ttf"),
     process.env.REPORT_THAI_FONT_PATH,
     process.platform === "win32" ? "C:\\Windows\\Fonts\\tahoma.ttf" : "",
   ].filter((value): value is string => Boolean(value));
