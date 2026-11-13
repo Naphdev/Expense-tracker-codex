@@ -11,7 +11,7 @@ function toggle() {
     <div class="mx-auto w-full max-w-md">
       <div class="mb-8 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <span class="grid h-10 w-10 place-items-center rounded-2xl bg-primary text-lg text-white">$</span>
+          <img src="/finance-letter-f.svg" alt="" class="h-10 w-10 rounded-2xl" />
           <div>
             <p class="text-[12px] tracking-[-0.24px]">{{ t("app.tagline") }}</p>
             <h1 class="text-[25px] leading-[30px] tracking-[-0.75px]">{{ t("app.name") }}</h1>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import { RouterLink, RouterView, useRoute } from "vue-router";
+import { RouterLink, RouterView, useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import NavIcon from "./NavIcon.vue";
 import { useAuthStore } from "../stores/auth";
@@ -9,9 +9,11 @@ import { useToastStore } from "../stores/toast";
 import { useNotificationStore, type FinanceNotification } from "../stores/notifications";
 import { formatTHB } from "../lib/money";
 import { NOTIFICATION_REFRESH_EVENT } from "../lib/notificationEvents";
+import { applyPwaUpdate, updateAvailable } from "../lib/pwa";
 
 const { t, locale } = useI18n();
 const route = useRoute();
+const router = useRouter();
 const auth = useAuthStore();
 const sync = useSyncStore();
 const toast = useToastStore();
@@ -27,6 +29,27 @@ const shownBudgetAlertIds = new Set<string>(readShownBudgetAlertIds());
 let notificationsInitialized = false;
 let notificationRefreshInFlight = false;
 let notificationRefreshPending = false;
+let offlineLockTimer: number | undefined;
+let offlineHiddenAt: number | null = null;
+const offlineLockDelay = 5 * 60 * 1000;
+
+function scheduleOfflineLock() {
+  if (offlineLockTimer !== undefined) window.clearTimeout(offlineLockTimer);
+  offlineLockTimer = undefined;
+  if (document.visibilityState !== "hidden") {
+    const wasAwayLongEnough = offlineHiddenAt !== null && Date.now() - offlineHiddenAt >= offlineLockDelay;
+    offlineHiddenAt = null;
+    if (wasAwayLongEnough) void auth.lockOffline();
+    return;
+  }
+  if (offlineHiddenAt === null) offlineHiddenAt = Date.now();
+  const remaining = Math.max(0, offlineLockDelay - (Date.now() - offlineHiddenAt));
+  offlineLockTimer = window.setTimeout(async () => {
+    offlineHiddenAt = null;
+    await auth.lockOffline();
+    if (auth.offlineUnlockRequired) await router.replace("/offline/unlock");
+  }, remaining);
+}
 
 function readShownBudgetAlertIds() {
   try {
@@ -63,6 +86,7 @@ function showBudgetAlert(item: FinanceNotification) {
 }
 
 async function refreshNotifications() {
+  if (!sync.online || auth.isOfflineSession) return;
   if (notificationRefreshInFlight) {
     notificationRefreshPending = true;
     return;
@@ -97,18 +121,27 @@ function refreshWhenVisible() {
   if (document.visibilityState === "visible") void refreshNotifications();
 }
 
+async function confirmPwaUpdate() {
+  if (window.confirm(t("pwa.updateConfirm"))) await applyPwaUpdate();
+}
+
 onMounted(() => {
+  void sync.refreshPending();
   void refreshNotifications();
   notificationRefresh = window.setInterval(() => void refreshNotifications(), 10_000);
   window.addEventListener("focus", refreshWhenVisible);
   window.addEventListener(NOTIFICATION_REFRESH_EVENT, refreshWhenVisible);
   document.addEventListener("visibilitychange", refreshWhenVisible);
+  document.addEventListener("visibilitychange", scheduleOfflineLock);
+  scheduleOfflineLock();
 });
 onUnmounted(() => {
+  if (offlineLockTimer !== undefined) window.clearTimeout(offlineLockTimer);
   if (notificationRefresh !== undefined) window.clearInterval(notificationRefresh);
   window.removeEventListener("focus", refreshWhenVisible);
   window.removeEventListener(NOTIFICATION_REFRESH_EVENT, refreshWhenVisible);
   document.removeEventListener("visibilitychange", refreshWhenVisible);
+  document.removeEventListener("visibilitychange", scheduleOfflineLock);
 });
 
 const items = computed(() => [
@@ -123,25 +156,29 @@ const more = computed(() => [
   { to: "/budgets", label: t("nav.budgets") },
   { to: "/goals", label: t("nav.goals") },
   { to: "/accounts", label: t("nav.accounts") },
-  { to: "/recurring", label: t("nav.recurring") },
-  { to: "/calendar", label: t("nav.calendar") },
-  { to: "/advisor", label: t("nav.advisor") },
-  { to: "/reports", label: t("nav.reports") },
+  ...(!auth.isOfflineSession ? [
+    { to: "/recurring", label: t("nav.recurring") },
+    { to: "/calendar", label: t("nav.calendar") },
+    { to: "/advisor", label: t("nav.advisor") },
+    { to: "/reports", label: t("nav.reports") },
+  ] : []),
 ]);
 
 const mobileMore = computed(() => [
   { to: "/budgets", label: t("nav.budgets"), icon: "wallet" as const },
   { to: "/goals", label: t("nav.goals"), icon: "target" as const },
   { to: "/accounts", label: t("nav.accounts"), icon: "account" as const },
-  { to: "/recurring", label: t("nav.recurring"), icon: "repeat" as const },
-  { to: "/calendar", label: t("nav.calendar"), icon: "calendar" as const },
-  { to: "/advisor", label: t("nav.advisor"), icon: "advisor" as const },
-  { to: "/reports", label: t("nav.reports"), icon: "report" as const },
+  ...(!auth.isOfflineSession ? [
+    { to: "/recurring", label: t("nav.recurring"), icon: "repeat" as const },
+    { to: "/calendar", label: t("nav.calendar"), icon: "calendar" as const },
+    { to: "/advisor", label: t("nav.advisor"), icon: "advisor" as const },
+    { to: "/reports", label: t("nav.reports"), icon: "report" as const },
+  ] : []),
   { to: "/profile", label: t("nav.profile"), icon: "user" as const },
 ]);
 
 const mobileItems = computed(() => [
-  ...items.value.filter((item) => item.to !== "/profile"),
+  ...items.value.filter((item) => item.to !== "/profile" && (!auth.isOfflineSession || item.to === "/" || item.to === "/transactions")),
   { to: "__more", label: t("common.more"), icon: "more" as const, primary: false },
 ]);
 const moreActive = computed(() => mobileMore.value.some((item) => active(item.to)));
@@ -200,6 +237,18 @@ watch(moreOpen, async (open) => {
 });
 
 watch(() => route.fullPath, closeMore);
+watch(() => auth.isOfflineSession, (offline) => {
+  scheduleOfflineLock();
+  if (offline && !["/", "/transactions", "/accounts", "/budgets", "/goals", "/profile"].includes(route.path)) {
+    void router.replace("/");
+  }
+});
+watch(() => auth.offlineUnlockRequired, (required) => {
+  if (required && route.path !== "/offline/unlock") void router.replace("/offline/unlock");
+});
+watch(() => auth.isAuthenticated, (authenticated) => {
+  if (!authenticated && !auth.offlineUnlockRequired && !route.meta.public) void router.replace("/login");
+});
 </script>
 
 <template>
@@ -207,14 +256,14 @@ watch(() => route.fullPath, closeMore);
     <div class="mx-auto flex min-h-dvh max-w-[1600px]">
       <aside class="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-line bg-surface px-5 py-6 md:flex">
         <RouterLink to="/" class="flex items-center gap-3 px-1" :aria-label="`${t('app.name')} home`">
-          <span class="grid h-10 w-10 place-items-center rounded-2xl bg-primary text-lg text-on-primary">$</span>
+          <img src="/finance-letter-f.svg" alt="" class="h-10 w-10 rounded-2xl" />
           <span class="text-[20px] tracking-[-0.6px] text-ink">{{ t("app.name") }}</span>
         </RouterLink>
 
         <nav class="mt-8 flex flex-1 flex-col gap-6 overflow-y-auto" :aria-label="t('app.name')">
           <div class="grid gap-1">
             <RouterLink
-              v-for="item in items.filter((i) => !i.primary)"
+              v-for="item in items.filter((i) => !i.primary && (!auth.isOfflineSession || i.to === '/' || i.to === '/transactions'))"
               :key="item.to"
               :to="item.to"
               class="flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.5 text-[14px] tracking-[-0.2px] transition-colors"
@@ -226,7 +275,7 @@ watch(() => route.fullPath, closeMore);
             </RouterLink>
           </div>
 
-          <RouterLink to="/transactions/new" class="btn-primary mt-1 w-full !rounded-xl">
+          <RouterLink v-if="!auth.isOfflineSession" to="/transactions/new" class="btn-primary mt-1 w-full !rounded-xl">
             <NavIcon name="add" />
             {{ t("nav.add") }}
           </RouterLink>
@@ -251,12 +300,15 @@ watch(() => route.fullPath, closeMore);
 
       <div class="flex min-w-0 flex-1 flex-col">
         <header class="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-line/70 bg-bg/95 px-4 py-3 backdrop-blur-xl md:px-8 md:py-3.5">
-          <div class="min-w-0 md:hidden">
-            <p class="text-xs font-medium text-muted">{{ t("app.name") }}</p>
-            <p class="truncate text-base font-semibold tracking-[-0.02em] text-ink">{{ currentTitle }}</p>
+          <div class="flex min-w-0 items-center gap-2 md:hidden">
+            <img src="/finance-letter-f.svg" alt="" class="h-9 w-9 shrink-0 rounded-xl" />
+            <div class="min-w-0">
+              <p class="text-xs font-medium text-muted">{{ t("app.name") }}</p>
+              <p class="truncate text-base font-semibold tracking-[-0.02em] text-ink">{{ currentTitle }}</p>
+            </div>
           </div>
           <div class="flex shrink-0 items-center gap-2">
-            <RouterLink
+            <RouterLink v-if="!auth.isOfflineSession"
               to="/notifications"
               class="relative grid h-11 w-11 place-items-center rounded-xl text-muted transition-colors hover:bg-surface-2 hover:text-ink"
               :aria-label="notifications.unreadCount ? t('notifications.openWithUnread', { count: notifications.unreadCount }) : t('notifications.open')"
@@ -269,11 +321,11 @@ watch(() => route.fullPath, closeMore);
               >{{ notifications.unreadCount > 99 ? "99+" : notifications.unreadCount }}</span>
             </RouterLink>
             <span class="chip hidden border border-line bg-surface text-ink sm:inline-flex">
-              <span class="h-2 w-2 rounded-full" :class="sync.online ? 'bg-success' : 'bg-muted'" />
-              {{ sync.online ? t("common.online") : t("common.offline") }}
+              <span class="h-2 w-2 rounded-full" :class="sync.online && !auth.isOfflineSession ? 'bg-success' : 'bg-muted'" />
+              {{ sync.online && !auth.isOfflineSession ? t("common.online") : t("common.offline") }}
             </span>
             <span v-if="sync.pending" class="chip border border-line bg-surface text-ink">{{ t("common.pending") }} {{ sync.pending }}</span>
-            <button v-if="sync.status === 'error' || sync.pending" type="button" class="chip min-h-11 bg-primary text-on-primary hover:bg-primary-dark" :aria-label="t('common.retrySync')" @click="sync.flush()">
+            <button v-if="!auth.isOfflineSession && (sync.status === 'error' || sync.pending)" type="button" class="chip min-h-11 bg-primary text-on-primary hover:bg-primary-dark" :aria-label="t('common.retrySync')" @click="sync.flush()">
               {{ t("common.retrySync") }}
             </button>
             <RouterLink to="/profile" class="grid h-10 w-10 place-items-center rounded-full bg-primary-soft text-sm font-semibold text-primary" :aria-label="t('nav.profile')">
@@ -282,14 +334,23 @@ watch(() => route.fullPath, closeMore);
           </div>
         </header>
 
+        <div v-if="updateAvailable" class="mx-4 mt-3 flex items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary-soft px-4 py-3 text-sm text-ink md:mx-8">
+          <span>{{ t("pwa.updateAvailable") }}</span>
+          <button type="button" class="btn-primary min-h-10 shrink-0 px-4" @click="confirmPwaUpdate">{{ t("pwa.update") }}</button>
+        </div>
+
         <main class="flex-1 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-3 md:px-8 md:pb-12 md:pt-6">
+          <div v-if="auth.isOfflineSession" class="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-warning/25 bg-warning-soft px-4 py-3 text-sm text-ink" role="status">
+            <span class="font-semibold">{{ t("pwa.offlineReadOnly") }}</span>
+            <span v-if="auth.offlineSnapshot" class="text-xs text-muted">{{ t("pwa.lastSynced", { date: new Date(auth.offlineSnapshot.syncedAt).toLocaleString(locale) }) }}</span>
+          </div>
           <RouterView />
         </main>
       </div>
     </div>
 
     <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-nav/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_28px_rgba(20,35,59,0.06)] backdrop-blur-xl md:hidden" :aria-label="t('app.name')">
-      <ul class="grid grid-cols-5 px-1 py-1.5">
+      <ul class="grid px-1 py-1.5" :class="auth.isOfflineSession ? 'grid-cols-3' : 'grid-cols-5'">
         <li v-for="item in mobileItems" :key="item.to" class="flex justify-center">
           <button
             v-if="item.to === '__more'"

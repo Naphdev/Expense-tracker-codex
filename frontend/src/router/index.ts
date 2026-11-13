@@ -4,6 +4,7 @@ import { useAuthStore } from "../stores/auth";
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    { path: "/offline/unlock", component: () => import("../views/auth/OfflineUnlockView.vue"), meta: { public: true } },
     { path: "/login", component: () => import("../views/auth/LoginView.vue"), meta: { public: true } },
     { path: "/register", component: () => import("../views/auth/RegisterView.vue"), meta: { public: true } },
     { path: "/forgot", component: () => import("../views/auth/ForgotView.vue"), meta: { public: true } },
@@ -37,6 +38,13 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
   if (!auth.ready) await auth.bootstrap();
+  if (to.path === "/offline/unlock") return auth.isAuthenticated ? { path: "/" } : true;
+  if (auth.offlineUnlockRequired && !auth.isAuthenticated && !to.meta.public) return { path: "/offline/unlock" };
+  if (auth.isOfflineSession && to.path === "/login") return true;
+  if (auth.isOfflineSession) {
+    const offlinePaths = ["/", "/transactions", "/accounts", "/budgets", "/goals", "/profile"];
+    if (!offlinePaths.includes(to.path)) return { path: "/" };
+  }
   if (!to.meta.public && !auth.isAuthenticated) return { path: "/login" };
   if (to.meta.public && auth.isAuthenticated) return { path: "/" };
   return true;

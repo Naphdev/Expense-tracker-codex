@@ -9,9 +9,10 @@ export default defineConfig({
     vue(),
     tailwindcss(),
     VitePWA({
-      registerType: "autoUpdate",
-      includeAssets: ["favicon.svg", "offline.html", "icons/icon-192.svg", "icons/icon-512.svg"],
+      registerType: "prompt",
+      includeAssets: ["favicon.svg", "finance-letter-f.svg", "offline.html", "apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-512-maskable.png"],
       manifest: {
+        id: "/",
         name: "Personal Finance Advisor",
         short_name: "Finance",
         description: "Mobile-first personal finance and saving advisor",
@@ -19,10 +20,13 @@ export default defineConfig({
         background_color: "#0B1220",
         display: "standalone",
         start_url: "/",
+        scope: "/",
         lang: "en",
         icons: [
-          { src: "/icons/icon-192.svg", sizes: "192x192", type: "image/svg+xml", purpose: "any" },
-          { src: "/icons/icon-512.svg", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" },
+          { src: "/finance-letter-f.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: "/icons/icon-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
       workbox: {
